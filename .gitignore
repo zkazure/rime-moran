@@ -1,0 +1,36 @@
+#######################
+# Generated artifacts #
+#######################
+moran.chars.dict.yaml
+zrlf.dict.yaml
+opencc/*.ocd2
+opencc/moran_chaifen.txt
+lua/zrmdb.txt
+dist/
+dazhu*.txt
+moran.mdd
+moran.mdx
+
+##############
+# Rime stuff #
+##############
+sync/
+/*.txt
+!moran_custom_phrases.txt
+*.userdb/
+installation.yaml
+user.yaml
+*.gram
+
+###############
+# Development #
+###############
+.venv/
+__pycache__/
+
+###########
+# Garbage #
+###########
+**/.DS_Store
+build/
+trash/
