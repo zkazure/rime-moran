@@ -1,14 +1,23 @@
 # encoding: utf-8
 #
-# 配合 symbols.custom.yaml：让半形 ` 直接上屏 ASCII 反引号。
+# 方案层补丁，配合 symbols.custom.yaml 让标点直接上屏。
 #
-# 为什么光改标点不够：` 同时是「两分反查」的前缀，recognizer 里有
-#   reverse_tick: "(^`$)|(^`[a-zA-Z]+$)"
-# 这个处理器排在 punctuator 之前，会把裸 ` 直接吃掉并打上 reverse_tick 标签，
-# punctuator 根本没机会上屏。所以必须在方案层把这个模式关掉。
+# 1) 让裸 ` 直接上屏 ASCII 反引号。
+#    ` 同时是「两分反查」的前缀，recognizer 里有
+#      reverse_tick: "(^`$)|(^`[a-zA-Z]+$)"
+#    它排在 punctuator 之前，会把裸 ` 接走并打上 reverse_tick 标签，标点映射
+#    永远不生效，所以必须在方案层关掉这个模式。
+#    代价：以 ` 开头的两分反查不可用。等价功能仍在——
+#      * olf 前缀的两分反查（reverse_zrlf）不受影响；
+#      * ` 不放在首键的反查仍可用，例如 ab`c、abcd`（reverse_universal）。
 #
-# 代价：以 ` 开头的两分反查（` + 编码）不可用了。等价功能仍在——
-#   * olf 前缀的两分反查（reverse_zrlf）不受影响；
-#   * ` 不放在首键的反查仍可用，例如 ab`c、abcd`（reverse_universal）。
+# 2) 让 / 和 ; 直接上屏。
+#    这两个字符写在 speller/alphabet 里（/ 是符号输入前缀，; 用于引导），
+#    speller 比 punctuator 先接走按键，标点映射就不生效。从字母表移除后，
+#    标点才由 punctuator 处理。
+#    组字过程中按 ; 选候选由 lua 的 semicolon_processor 负责，实测不受影响
+#    （ni; → 疑）。
+#    代价：/fh、/hb、/sx 这类符号输入不可用；「; + 编码」的引导式 auto_select 失效。
 patch:
   "recognizer/patterns/reverse_tick": null
+  "speller/alphabet": abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ

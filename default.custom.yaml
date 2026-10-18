@@ -1,0 +1,14 @@
+# encoding: utf-8
+#
+# 全局补丁：修掉「单按 @ 会弹出一个候选让你确认」的问题。
+#
+# 原因：default.yaml（经由各方案 recognizer 的 import_preset: default 继承）有
+#   email: "^([A-Za-z][-_.0-9A-Za-z]*|)@.*$"
+# 第一个分支允许「空的 local part」，所以单独一个 @ 也匹配 email。recognizer
+# 排在 punctuator 之前，会把这个 @ 直接 push 进输入并接走按键，punctuator 的
+# commit 映射根本没机会执行，于是只剩一个「@」候选要你手动确认。
+#
+# 修法：把 local part 改成必填（至少一个字母打头）。真正的邮箱地址照常识别，
+# 单独一个 @ 不再被 email 认领，交给 punctuator 直接上屏。
+patch:
+  "recognizer/patterns/email": "^[A-Za-z][-_.0-9A-Za-z]*@.*$"
