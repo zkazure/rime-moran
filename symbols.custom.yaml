@@ -1,0 +1,65 @@
+# encoding: utf-8
+#
+# 用户补丁：只改「按键 → 标点」的映射，不改 symbols.yaml 本体。
+# 生效范围：所有 import_preset: symbols 的方案（moran、moran_aux、
+# moran_sentence、moran_fixed、tiger）；全形模式（full_shape）不受影响。
+#
+# 这些键半形下直接上屏，不再弹候选：
+#   $ @ # % * ~ | `   →  原样 ASCII
+#   < >                →  《 》书名号
+#   [ ]                →  【 】方头括号（大陆习惯）
+#   { }                →  〔 〕六角括号（大陆公文/注释常用）
+#   /                  →  ASCII 斜线
+#
+# 原理：symbols.yaml 把这些键映射成「列表」（如 '$' : [ ￥, '$', '€', … ]），
+# 列表在 punct_translator 中会产生多个候选，所以按键会弹候选单；换成单一
+# commit 值后 Punctuator::AutoCommitPunct() 便直接上屏。
+#
+# 关于 /：它原本是 Rime 的符号输入前缀（/fh /hb /sx /0 …，由 recognizer 的
+# '^/([0-9]0?|[A-Za-z]+)$' 识别）。改成 commit 后第一个 / 立即上屏，所以整张
+# punctuator/symbols 表都打不出来了——这是有意的取舍。
+#
+# 为什么必须整表抄 half_shape：没办法只覆盖 / 这一个键——
+#   * "punctuator/half_shape//"：空路径段会把整张 half_shape 表替换成单个值，
+#     其余 31 个标点全部失效；
+#   * "punctuator/half_shape/+"：往原表并入 map 会报 "error merging branch /"
+#     （原值是列表，类型不符）；
+#   * 嵌套写法 "punctuator: {half_shape: {…}}"：部署后 half_shape 的键会被提升
+#     到 punctuator 下面，full_shape / symbols / digit_separators 全部丢失。
+# 所以这里用带引号的扁平路径 "punctuator/half_shape" 整体替换成下面这张表
+# （symbols.yaml 现有 half_shape 的副本，只把上面这些键改成 commit）。
+# 代价：上游以后增删半形标点时，本文件不会自动继承，需要手工同步 symbols.yaml。
+patch:
+  "punctuator/half_shape":
+    ',' : { commit: ， }
+    '.' : { commit: 。 }
+    '<' : { commit: '《' }
+    '>' : { commit: '》' }
+    '/' : { commit: '/' }
+    '?' : { commit: ？ }
+    ';' : { commit: ； }
+    ':' : { commit: ： }
+    '''' : { pair: [ '‘', '’' ] }
+    '"' : { pair: [ '“', '”' ] }
+    '\' : { commit: 、 }
+    '|' : { commit: '|' }
+    '`' : { commit: '`' }
+    '~' : { commit: '~' }
+    '!' : { commit: ！ }
+    '@' : { commit: '@' }
+    '#' : { commit: '#' }
+    '%' : { commit: '%' }
+    '$' : { commit: '$' }
+    '^' : { commit: …… }
+    '&' : '&'
+    '*' : { commit: '*' }
+    '(' : （
+    ')' : ）
+    '-' : '-'
+    '_' : ——
+    '+' : '+'
+    '=' : { commit: '=' }
+    '[' : { commit: '「' }
+    ']' : { commit: '」' }
+    '{' : { commit: '『' }
+    '}' : { commit: '』' }

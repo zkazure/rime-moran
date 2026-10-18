@@ -1,0 +1,14 @@
+# encoding: utf-8
+#
+# 配合 symbols.custom.yaml：让半形 ` 直接上屏 ASCII 反引号。
+#
+# 为什么光改标点不够：` 同时是「两分反查」的前缀，recognizer 里有
+#   reverse_tick: "(^`$)|(^`[a-zA-Z]+$)"
+# 这个处理器排在 punctuator 之前，会把裸 ` 直接吃掉并打上 reverse_tick 标签，
+# punctuator 根本没机会上屏。所以必须在方案层把这个模式关掉。
+#
+# 代价：以 ` 开头的两分反查（` + 编码）不可用了。等价功能仍在——
+#   * olf 前缀的两分反查（reverse_zrlf）不受影响；
+#   * ` 不放在首键的反查仍可用，例如 ab`c、abcd`（reverse_universal）。
+patch:
+  "recognizer/patterns/reverse_tick": null
